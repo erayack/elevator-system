@@ -1,7 +1,8 @@
 # algorithm.py
 
-from enum import Enum
+from elevator_system.elevator_enums import Direction, ElevatorState, Enum
 from typing import List, Dict
+
 
 class Direction(Enum):
     UP = 1
@@ -10,15 +11,32 @@ class Direction(Enum):
 
 class ElevatorState:
     def __init__(self, current_floor: int, direction: Direction):
-        self.current_floor = current_floor
-        self.direction = direction
+        self._current_floor = current_floor
+        self._direction = direction
+
+    @property
+    def current_floor(self):
+        return self._current_floor
+
+    @current_floor.setter
+    def current_floor(self, value):
+        self._current_floor = value
+
+    @property
+    def direction(self):
+        return self._direction
+
+    @direction.setter
+    def direction(self, value):
+        self._direction = value
 
 class SCANAlgorithm:
     def __init__(self, num_floors: int, num_elevators: int):
         self.num_floors = num_floors
         self.num_elevators = num_elevators
         self.elevator_states: Dict[int, ElevatorState] = {}
-        self.requests: Dict[int, List[int]] = {}  # Key: floor, Value: list of destination floors
+        self.requests: Dict[int, List[int]] = {}
+        print(f"Initialized SCANAlgorithm with {num_floors} floors and {num_elevators} elevators")
 
     def initialize_elevators(self):
         for i in range(self.num_elevators):
@@ -48,18 +66,20 @@ class SCANAlgorithm:
         return min(floors_with_requests, key=lambda x: abs(x - current_floor))
 
     def _move_elevator(self, elevator_id: int):
-        state = self.elevator_states[elevator_id]
-        
-        if state.direction == Direction.UP:
-            state.current_floor += 1
-            if state.current_floor == self.num_floors:
-                state.direction = Direction.DOWN
-        elif state.direction == Direction.DOWN:
-            state.current_floor -= 1
-            if state.current_floor == 1:
-                state.direction = Direction.UP
-
-        self._handle_floor_requests(elevator_id, state.current_floor)
+    state = self.elevator_states[elevator_id]
+    print(f"Before move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
+    
+    if state.direction == Direction.UP:
+        state.current_floor += 1
+        print(f"After increment: Elevator {elevator_id} at floor {state.current_floor}")
+    elif state.direction == Direction.DOWN:
+        state.current_floor -= 1
+    
+    # Ensure the elevator stays within the building's floor range
+    state.current_floor = max(1, min(state.current_floor, self.num_floors))
+    
+    print(f"After move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
+    self._handle_floor_requests(elevator_id, state.current_floor)
 
     def _handle_floor_requests(self, elevator_id: int, floor: int):
         if floor in self.requests:
@@ -86,13 +106,16 @@ class ElevatorSystem:
         self.process_requests()
 
     def process_requests(self):
-        self.__algorithm.process_requests()
-        for elevator_id, elevator_car in enumerate(self.__building.elevators):
-            state = self.__algorithm.get_elevator_state(elevator_id)
-            if state.current_floor != elevator_car.get_current_floor():
-                elevator_car.move(state.direction)
-                if state.current_floor == elevator_car.get_current_floor():
-                    self.handle_arrival(elevator_id, state.current_floor)
+        for elevator_id, state in self.__algorithm.elevator_states.items():
+            if state.direction == Direction.IDLE:
+                nearest_floor = self.__algorithm._find_nearest_floor_with_request(state.current_floor)
+                if nearest_floor is not None:
+                    if nearest_floor > state.current_floor:
+                        state.direction = Direction.UP
+                    elif nearest_floor < state.current_floor:
+                        state.direction = Direction.DOWN
+            
+            self.__algorithm._move_elevator(elevator_id)
 
     def handle_arrival(self, elevator_id: int, floor: int):
         elevator_car = self.__building.elevators[elevator_id]

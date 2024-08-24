@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from elevator_system.elevator_enums import Direction
 
 
 # This section contains the implementation of a Button class and its subclasses which are HallButton and the ElevatorButton. 
