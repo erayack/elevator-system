@@ -47,5 +47,37 @@ class TestSCANAlgorithm:
         assert state.current_floor == 1
         assert state.direction.name == 'IDLE'
 
+    # TODO: Rewrite this test
+    '''
+    def test_move_elevator(self, algorithm):
+        algorithm.initialize_elevators()
+        
+        # Test moving up
+        algorithm.elevator_states[0].direction = Direction.UP
+        algorithm.elevator_states[0].current_floor = 5
+        print(f"Before _move_elevator: {algorithm.elevator_states[0].current_floor}, {algorithm.elevator_states[0].direction}")
+        algorithm._move_elevator(0)
+        print(f"After _move_elevator: {algorithm.elevator_states[0].current_floor}, {algorithm.elevator_states[0].direction}")
+        assert algorithm.elevator_states[0].current_floor == 6, f"Expected 6, got {algorithm.elevator_states[0].current_floor}"
+        
+        # Test moving down
+        algorithm.elevator_states[1].direction = Direction.DOWN
+        algorithm.elevator_states[1].current_floor = 5
+        algorithm._move_elevator(1)
+        assert algorithm.elevator_states[1].current_floor == 4
+        
+        # Test upper limit
+        algorithm.elevator_states[2].direction = Direction.UP
+        algorithm.elevator_states[2].current_floor = algorithm.num_floors
+        algorithm._move_elevator(2)
+        assert algorithm.elevator_states[2].direction == Direction.DOWN
+        
+        # Test lower limit
+        algorithm.elevator_states[2].direction = Direction.DOWN
+        algorithm.elevator_states[2].current_floor = 1
+        algorithm._move_elevator(2)
+        assert algorithm.elevator_states[2].direction == Direction.UP
+    '''
+
 if __name__ == "__main__":
     pytest.main()

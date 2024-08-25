@@ -67,6 +67,8 @@ class SCANAlgorithm:
 
     def _move_elevator(self, elevator_id: int):
         state = self.elevator_states[elevator_id]
+        print(f"Before move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
+        
         if state.direction == Direction.UP:
             if state.current_floor < self.num_floors:
                 state.current_floor += 1
@@ -78,6 +80,12 @@ class SCANAlgorithm:
             else:
                 state.direction = Direction.UP
         
+        # Update the state in the dictionary
+        self.elevator_states[elevator_id] = state
+
+        print(f"After move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
+        print(f"Elevator states: {self.elevator_states}")
+        
         # Check if there are any requests at the current floor
         if state.current_floor in self.requests:
             self.requests.remove(state.current_floor)
@@ -86,9 +94,6 @@ class SCANAlgorithm:
         if not self.requests:
             state.direction = Direction.IDLE
 
-        print(f"Before move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
-        
-        print(f"After move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
         self._handle_floor_requests(elevator_id, state.current_floor)
 
     def _handle_floor_requests(self, elevator_id: int, floor: int):
