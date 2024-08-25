@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Run tests
         run: |
-          python3 -m pytest elevator_system/tests/test_algorithm.py  # Run specific test file
+          python -m pytest elevator_system/tests/test_algorithm.py  # Run specific test file
 
   deploy:
     runs-on: ubuntu-latest
