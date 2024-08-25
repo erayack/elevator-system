@@ -2,7 +2,10 @@
 
 from elevator_system.elevator_enums import Direction, ElevatorState, Enum, DoorState  # Added DoorState import
 from typing import List, Dict
+import logging  # Added logging import
 
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class Direction(Enum):
     UP = 1
@@ -11,8 +14,13 @@ class Direction(Enum):
 
 class ElevatorState:
     def __init__(self, current_floor: int, direction: Direction):
+        if current_floor < 1:
+            raise ValueError("Current floor must be 1 or higher.")
+        if direction not in Direction:
+            raise ValueError("Invalid direction.")
         self._current_floor = current_floor
         self._direction = direction
+        logging.debug(f"ElevatorState initialized at floor {current_floor} with direction {direction}")
 
     @property
     def current_floor(self):
@@ -43,12 +51,17 @@ class SCANAlgorithm:
             self.elevator_states[i] = ElevatorState(1, Direction.IDLE)
 
     def add_request(self, floor: int, destination: int):
+        if floor < 1 or floor > self.num_floors:
+            raise ValueError("Floor must be within valid range.")
+        if destination < 1 or destination > self.num_floors:
+            raise ValueError("Destination must be within valid range.")
         if floor not in self.requests:
             self.requests[floor] = []
         self.requests[floor].append(destination)
 
     def process_requests(self):
         for elevator_id, state in self.elevator_states.items():
+            logging.debug(f"Processing requests for Elevator {elevator_id} at floor {state.current_floor}")
             if state.direction == Direction.IDLE:
                 nearest_floor = self._find_nearest_floor_with_request(state.current_floor)
                 if nearest_floor is not None:
@@ -60,14 +73,18 @@ class SCANAlgorithm:
             self._move_elevator(elevator_id)
 
     def _find_nearest_floor_with_request(self, current_floor: int) -> int:
+        if current_floor < 1 or current_floor > self.num_floors:
+            raise ValueError("Current floor must be within valid range.")
         floors_with_requests = list(self.requests.keys())
         if not floors_with_requests:
             return None
         return min(floors_with_requests, key=lambda x: abs(x - current_floor))
 
     def _move_elevator(self, elevator_id: int):
+        if elevator_id not in self.elevator_states:
+            raise ValueError("Invalid elevator ID.")
         state = self.elevator_states[elevator_id]
-        print(f"Before move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
+        logging.info(f"Before move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
         
         if state.direction == Direction.UP:
             if state.current_floor < self.num_floors:
@@ -83,8 +100,8 @@ class SCANAlgorithm:
         # Update the state in the dictionary
         self.elevator_states[elevator_id] = state
 
-        print(f"After move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
-        print(f"Elevator states: {self.elevator_states}")
+        logging.info(f"After move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
+        logging.info(f"Elevator states: {self.elevator_states}")
         
         # Check if there are any requests at the current floor
         if state.current_floor in self.requests:
@@ -100,7 +117,7 @@ class SCANAlgorithm:
         if floor in self.requests:
             destinations = self.requests[floor]
             for dest in destinations:
-                print(f"Elevator {elevator_id} picks up passenger at floor {floor} going to floor {dest}")
+                logging.info(f"Elevator {elevator_id} picks up passenger at floor {floor} going to floor {dest}")
             del self.requests[floor]
 
     def get_elevator_state(self, elevator_id: int) -> ElevatorState:
@@ -115,6 +132,9 @@ class ElevatorSystem:
         self.__algorithm.initialize_elevators()
 
     def dest_floor(self, floor: int):
+        if floor < 1 or floor > len(self.__building.floors):
+            raise ValueError("Destination floor must be within valid range.")
+        logging.info(f"Destination floor requested: {floor}")
         # This method is called when an ElevatorButton is pressed
         current_floor = self.__building.elevators[0].get_current_floor()  # Assuming we're using the first elevator
         self.__algorithm.add_request(current_floor, floor)
@@ -133,6 +153,11 @@ class ElevatorSystem:
             self.__algorithm._move_elevator(elevator_id)
 
     def handle_arrival(self, elevator_id: int, floor: int):
+        if elevator_id < 0 or elevator_id >= len(self.__building.elevators):
+            raise ValueError("Invalid elevator ID.")
+        if floor < 1 or floor > len(self.__building.floors):
+            raise ValueError("Invalid floor number.")
+        logging.info(f"Elevator {elevator_id} has arrived at floor {floor}")
         elevator_car = self.__building.elevators[elevator_id]
         elevator_car.door.open_door()
         print(f"Elevator {elevator_id} has arrived at floor {floor}")
@@ -147,6 +172,9 @@ class ElevatorCar:
         self.__current_floor = 1
 
     def move(self, direction: Direction):
+        if direction not in Direction:
+            raise ValueError("Invalid direction.")
+        logging.debug(f"Elevator {self.__id} moving {direction}")
         if direction == Direction.UP:
             self.__current_floor += 1
         elif direction == Direction.DOWN:
@@ -165,12 +193,16 @@ class Door:
         self.__state = DoorState.CLOSED
 
     def open_door(self):
+        if self.__state == DoorState.OPEN:
+            raise RuntimeError("Door is already open.")
         self.__state = DoorState.OPEN
-        print("Door is now open")
+        logging.info("Door is now open")
 
     def close_door(self):
+        if self.__state == DoorState.CLOSED:
+            raise RuntimeError("Door is already closed.")
         self.__state = DoorState.CLOSED
-        print("Door is now closed")
+        logging.info("Door is now closed")
 
 class Display:
     def __init__(self):
@@ -181,7 +213,7 @@ class Display:
         self.show_elevator_display()
 
     def show_elevator_display(self):
-        print(f"Current Floor: {self.__floor}")
+        logging.debug(f"Current Floor: {self.__floor}")
 
 class ElevatorButton:
     def __init__(self, floor: int, elevator_system: ElevatorSystem):
@@ -190,6 +222,7 @@ class ElevatorButton:
         self.__is_pressed = False
 
     def press_down(self):
+        logging.info(f"Button pressed for floor {self.__floor}")
         self.__is_pressed = True
         self.__elevator_system.dest_floor(self.__floor)
 

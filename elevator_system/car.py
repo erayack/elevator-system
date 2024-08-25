@@ -23,3 +23,14 @@ class ElevatorCar:
         # Open the door
         self.__door.open()
         print(f"Elevator {self.__id} has stopped at floor {floor}")
+
+    def set_maintenance_mode(self, maintenance: bool):
+        if maintenance:
+            self.__state = "maintenance"
+            print(f"Elevator {self.__id} is now in maintenance mode.")
+        else:
+            self.__state = "idle"
+            print(f"Elevator {self.__id} is now out of maintenance mode.")
+
+    def is_in_maintenance(self):
+        return self.__state == "maintenance"
