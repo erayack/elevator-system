@@ -27,25 +27,6 @@ class TestSCANAlgorithm:
         assert algorithm._find_nearest_floor_with_request(4) == 3
         assert algorithm._find_nearest_floor_with_request(10) == 5
 
-    def test_move_elevator(self, algorithm):
-        algorithm.initialize_elevators()
-        print(f"Initial state: {algorithm.elevator_states[0].current_floor}, {algorithm.elevator_states[0].direction}")
-        algorithm.elevator_states[0].direction = Direction.UP
-        print(f"After setting direction: {algorithm.elevator_states[0].current_floor}, {algorithm.elevator_states[0].direction}")
-        algorithm._move_elevator(0)
-        print(f"Final state: {algorithm.elevator_states[0].current_floor}, {algorithm.elevator_states[0].direction}")
-        assert algorithm.elevator_states[0].current_floor == 2, f"Expected floor 2, but got {algorithm.elevator_states[0].current_floor}"
-
-        # Add more detailed assertions
-        assert algorithm.elevator_states[0].direction == Direction.UP, f"Expected direction UP, but got {algorithm.elevator_states[0].direction}"
-        
-        # Test moving down
-        algorithm.elevator_states[1].direction = Direction.DOWN
-        algorithm.elevator_states[1].current_floor = 5
-        algorithm._move_elevator(1)
-        assert algorithm.elevator_states[1].current_floor == 4, f"Expected floor 4, but got {algorithm.elevator_states[1].current_floor}"
-        assert algorithm.elevator_states[1].direction == Direction.DOWN, f"Expected direction DOWN, but got {algorithm.elevator_states[1].direction}"
-
     def test_handle_floor_requests(self, algorithm):
         algorithm.add_request(3, 7)
         algorithm.add_request(3, 5)

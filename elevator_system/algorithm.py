@@ -1,6 +1,6 @@
 # algorithm.py
 
-from elevator_system.elevator_enums import Direction, ElevatorState, Enum
+from elevator_system.elevator_enums import Direction, ElevatorState, Enum, DoorState  # Added DoorState import
 from typing import List, Dict
 
 
@@ -66,20 +66,30 @@ class SCANAlgorithm:
         return min(floors_with_requests, key=lambda x: abs(x - current_floor))
 
     def _move_elevator(self, elevator_id: int):
-    state = self.elevator_states[elevator_id]
-    print(f"Before move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
-    
-    if state.direction == Direction.UP:
-        state.current_floor += 1
-        print(f"After increment: Elevator {elevator_id} at floor {state.current_floor}")
-    elif state.direction == Direction.DOWN:
-        state.current_floor -= 1
-    
-    # Ensure the elevator stays within the building's floor range
-    state.current_floor = max(1, min(state.current_floor, self.num_floors))
-    
-    print(f"After move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
-    self._handle_floor_requests(elevator_id, state.current_floor)
+        state = self.elevator_states[elevator_id]
+        if state.direction == Direction.UP:
+            if state.current_floor < self.num_floors:
+                state.current_floor += 1
+            else:
+                state.direction = Direction.DOWN
+        elif state.direction == Direction.DOWN:
+            if state.current_floor > 1:
+                state.current_floor -= 1
+            else:
+                state.direction = Direction.UP
+        
+        # Check if there are any requests at the current floor
+        if state.current_floor in self.requests:
+            self.requests.remove(state.current_floor)
+        
+        # If there are no more requests, set the elevator to IDLE
+        if not self.requests:
+            state.direction = Direction.IDLE
+
+        print(f"Before move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
+        
+        print(f"After move: Elevator {elevator_id} at floor {state.current_floor}, direction {state.direction}")
+        self._handle_floor_requests(elevator_id, state.current_floor)
 
     def _handle_floor_requests(self, elevator_id: int, floor: int):
         if floor in self.requests:
