@@ -2,7 +2,7 @@
 
 from elevator_system.elevator_enums import Direction, ElevatorState, Enum, DoorState  # Added DoorState import
 from typing import List, Dict
-import logging  # Added logging import
+import logging
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
