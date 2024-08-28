@@ -1,8 +1,9 @@
 from elevator_system.system import ElevatorSystem
-from elevator_system.building import Building  
+from elevator_system.building import Building
+
 
 if __name__ == "__main__":
-    building = Building()  # Assuming you have a Building class
+    building = Building()
     elevator_system = ElevatorSystem(building)
 
     # Simulate a fire alarm
